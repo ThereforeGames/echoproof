@@ -18,13 +18,14 @@ params = {
 	"is_tab": False,
 	"debug": False,
 	"delimiter":" ",
-	"history_multiplier":0,
+	"history_multiplier":1,
 	"last_msg_multiplier":5,
 	"message_limit":0,
-	"enable": True
+	"enable": True,
+	"blacklist":""
 }
 
-VERSION = "0.0.2"
+VERSION = "0.1.0"
 
 def state_modifier(state):
 	"""
@@ -50,6 +51,14 @@ def state_modifier(state):
 		if params["last_msg_multiplier"] > 1:
 			extra_neg += state["history"]["internal"][-1][1] * (params["last_msg_multiplier"] - 1)
 
+		if params["blacklist"]:
+			import re
+			blacklist = params["blacklist"].split("\n")
+			for term in blacklist:
+				# Convert glob-style wildcard to regex-style
+				term = term.replace("*", ".*")
+				extra_neg = re.sub(term, "", extra_neg)
+
 		if params["debug"]:
 			print(f"Value of `extra_neg`: {extra_neg}")
 		
@@ -69,13 +78,14 @@ def ui():
 
 		gr.Markdown("**Note:** You must load a model with `cfg-cache` enabled and set `guidance_scale` to a value > 1 for Echoproof to take effect.")
 
-		enable = gr.Checkbox(value=True,label="Enable")
-		enable.change(lambda x: params.update({"enable": x}), enable, None)
+		with gr.Row():
+			enable = gr.Checkbox(value=True,label="Enable")
+			enable.change(lambda x: params.update({"enable": x}), enable, None)
 
-		debug = gr.Checkbox(value=False,label="Debug")
-		debug.change(lambda x: params.update({"debug": x}), debug, None)
+			debug = gr.Checkbox(value=False,label="Debug")
+			debug.change(lambda x: params.update({"debug": x}), debug, None)
 
-		history_multiplier = gr.Slider(0, 50, label="History Multiplier", info="Adds the conversation history to your negative prompt x times.", value=0, step=1)
+		history_multiplier = gr.Slider(0, 50, label="History Multiplier", info="Adds the conversation history to your negative prompt x times.", value=1, step=1)
 		history_multiplier.change(lambda x: params.update({"history_multiplier": x}), history_multiplier, None)
 
 		last_msg_multiplier = gr.Slider(1, 50, label="Last Message Multiplier", info="Adds the most recent message to your negative prompt x times.", value=5, step=1)
@@ -86,5 +96,8 @@ def ui():
 
 		delimiter = gr.Textbox(value=" ",label="Message Delimiter",info="String that separates each message in the negative prompt.")
 		delimiter.change(lambda x: params.update({"delimiter": x}), delimiter, None)
+
+		blacklist = gr.Textbox(value="",lines=3,max_lines=100,label="Blacklist",info="These terms will be excluded from being injected into your negative prompt. Enter one term per line. Supports `*` wildcard as well as regex.")
+		blacklist.change(lambda x: params.update({"blacklist": x}), blacklist, None)
 
 		gr.Markdown("If you find this project useful, consider [supporting my work here](https://github.com/sponsors/ThereforeGames). Thank you. ❤️")
