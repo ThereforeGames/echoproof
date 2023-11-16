@@ -82,7 +82,7 @@ def ui():
 		last_msg_multiplier.change(lambda x: params.update({"last_msg_multiplier": x}), last_msg_multiplier, None)
 
 		message_limit = gr.Number(value=10,label="History Message Limit")
-		message_limit.change(lambda x: params.update({"message_limit":x}), message_limit, None)
+		message_limit.change(lambda x: params.update({"message_limit":int(x)}), message_limit, None)
 
 		delimiter = gr.Textbox(value=" ",label="Message Delimiter",info="String that separates each message in the negative prompt.")
 		delimiter.change(lambda x: params.update({"delimiter": x}), delimiter, None)
