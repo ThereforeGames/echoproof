@@ -33,7 +33,7 @@ def state_modifier(state):
 	"""
 
 	if params["enable"]:
-		internal_history = int(state["history"]["internal"])
+		internal_history = state["history"]["internal"]
 		history_length = len(internal_history)
 		if params["message_limit"]:
 			_min = max(0,history_length - params["message_limit"])
@@ -41,7 +41,7 @@ def state_modifier(state):
 			_min = 0
 
 		extra_neg = ""
-		for idx in range(_min,len(internal_history)):
+		for idx in range(_min,history_length):
 			msg = internal_history[idx]
 			extra_neg += msg[1] + params["delimiter"]
 
