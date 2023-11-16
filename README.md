@@ -6,9 +6,9 @@ Echoproof is a simple extension for Ooobabooga's [text-generation-webui](https:/
 
 I have observed that certain tokens will cause LLMs to exhibit an "OCD-like" behavior where future messages become progressively more repetitive. If you are not familiar with this effect, try appending a bunch of emoji 👀😲😔 to a chatbot's reply or forcing it to write in ALL CAPS - it will become a broken record very quickly.
 
-This is certainly true of quantized Llama 2 models in the 7b to 30b paramater range - I'm guessing it's less prevalent in 70b models, but I don't have the hardware to test that.
+This is certainly true of quantized Llama 2 models in the 7b to 30b parameter range - I'm guessing it's less prevalent in 70b models, but I don't have the hardware to test that.
 
-Existing solutions to address this problem, such as `repitition_penalty`, have shown limited success.
+Existing solutions to address this problem, such as `repetition_penalty`, have shown limited success.
 
 This issue can derail a conversation well before the context window is exhausted, so I believe it is unrelated to another known phenomenon where a model will descend into a "word salad" state once the chat has gone on for too long.
 
@@ -22,7 +22,7 @@ After testing this approach for a few weeks, I have refined it with a few additi
 - **History Multiplier**: The number of times to add your entire chat history into the negative prompt. If you enable Echoproof from the beginning of a conversation, this feature is probably overkill. However, it might be able to save a conversation that is already starting to go off the rails.
 - **History Message Limit**: Caps the aforementioned feature to the last x messages.
 
-Some models are more prone to repitition than others, so you may need to experiment with these settings to find the right balance.
+Some models are more prone to repetition than others, so you may need to experiment with these settings to find the right balance.
 
 ## How to install
 
