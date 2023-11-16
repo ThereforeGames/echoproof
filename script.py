@@ -20,10 +20,11 @@ params = {
 	"delimiter":" ",
 	"history_multiplier":0,
 	"last_msg_multiplier":5,
-	"message_limit":0
+	"message_limit":0,
+	"enable": True
 }
 
-VERSION = "0.0.1"
+VERSION = "0.0.2"
 
 def state_modifier(state):
 	"""
@@ -32,7 +33,7 @@ def state_modifier(state):
 	"""
 
 	if params["enable"]:
-		internal_history = state["history"]["internal"]
+		internal_history = int(state["history"]["internal"])
 		history_length = len(internal_history)
 		if params["message_limit"]:
 			_min = max(0,history_length - params["message_limit"])
