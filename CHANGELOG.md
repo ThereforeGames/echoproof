@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## 0.2.0 - 18 November 2023
+### Added
+- Default tab support
+- Notebook tab support
+- Print debug info for Blacklist
+- New setting `context_delimiter`: Allows you to specify expected history format for Notebook and Default tabs, defaults to `\n`
+
+### Changed
+- Renamed `Message Delimiter` to `Negative Delimiter`
+- Blank history messages are now ignored
+
 ## 0.1.0 - 16 November 2023
 ### Added
 - New Blacklist feature: Allows you to exclude certain terms from being injected into your negative prompt, with support for * wildcard and regex
