@@ -3,7 +3,7 @@ Simple extension that injects recent conversation into the negative prompt in or
 """
 
 import gradio as gr
-import torch
+import torch, math
 from transformers import LogitsProcessor
 
 from modules import chat, shared
@@ -19,15 +19,15 @@ params = {
 	"debug": False,
 	"context_delimiter":"\\n",
 	"negative_delimiter":" ",
-	"history_multiplier":1,
-	"last_msg_multiplier":5,
-	"message_limit":0,
+	"max_messages":10,
+	"max_multiplier":4,
+	"scaling":"exponential",
 	"enable": True,
 	"blacklist":"",
 	"tab":"chat"
 }
 
-VERSION = "0.2.0"
+VERSION = "0.3.0"
 
 def state_modifier(state):
 	"""
@@ -66,29 +66,29 @@ def state_modifier(state):
 
 		history_length = len(internal_history)
 
-		_min = max(0,history_length - params["message_limit"]) if params["message_limit"] else 0
+		_min = max(0,history_length - params["max_messages"]) if params["max_messages"] else 0
 
 		extra_neg = ""
+		total_messages = history_length - _min
 		for idx in range(_min,history_length):
 			msg = internal_history[idx]
 			if params["tab"]=="chat": msg = msg[1]
-			extra_neg += msg + params["negative_delimiter"]
 
-		extra_neg *= params["history_multiplier"]
+			# Linear scaled repeats
+			relative_idx = idx - _min + 1
 
-		if params["last_msg_multiplier"] > 1:
-			last_msg = internal_history[-1]
-			if last_msg:
-				if params["tab"]=="chat": last_msg = last_msg[1]
-				extra_neg += last_msg * (params["last_msg_multiplier"] - 1)
+			if params["scaling"]=="constant":
+				multiplier = params["max_multiplier"]
+			elif params["scaling"]=="linear":
+				multiplier = round(relative_idx / total_messages * params["max_multiplier"])
+			elif params["scaling"]=="exponential":
+				multiplier = round(params["max_multiplier"] * math.pow((relative_idx / total_messages), 2))
+			elif params["scaling"]=="logarithmic":
+				multiplier = round(params["max_multiplier"] * math.log(relative_idx + 1) / math.log(total_messages + 1))
 
-		#if params["blacklist"]:
-		#	import re
-		#	blacklist = params["blacklist"].split("\n")
-		#	for term in blacklist:
-				# Convert glob-style wildcard to regex-style
-		#		term = term.replace("*", ".*")
-		#		extra_neg = re.sub(term, "", extra_neg)
+			if params["debug"]: print(f"Multiplier for message #{relative_idx}/{total_messages}: {multiplier}")
+
+			extra_neg += (msg + params["negative_delimiter"]) * multiplier
 
 		if params["debug"]:
 			print(f"Value of `extra_neg`: {extra_neg}")
@@ -116,14 +116,17 @@ def ui():
 			debug = gr.Checkbox(value=False,label="Debug")
 			debug.change(lambda x: params.update({"debug": x}), debug, None)
 
-		history_multiplier = gr.Slider(0, 50, label="History Multiplier", info="Adds the conversation history to your negative prompt x times.", value=1, step=1)
-		history_multiplier.change(lambda x: params.update({"history_multiplier": x}), history_multiplier, None)
+		
+		with gr.Row():
+			max_messages = gr.Slider(1, 50, label="Max Messages", info="Adds the most recent x messages to your negative prompt.", value=10, step=1)
+			max_messages.change(lambda x: params.update({"max_messages": x}), max_messages, None)
 
-		last_msg_multiplier = gr.Slider(1, 50, label="Last Message Multiplier", info="Adds the most recent message to your negative prompt x times.", value=5, step=1)
-		last_msg_multiplier.change(lambda x: params.update({"last_msg_multiplier": x}), last_msg_multiplier, None)
+			max_multiplier = gr.Slider(0, 50, label="Max Multiplier", info="The maximum number of times a message will be added to the negative prompt.", value=4, step=1)
+			max_multiplier.change(lambda x: params.update({"max_multiplier": x}), max_multiplier, None)
 
-		message_limit = gr.Number(value=10,label="History Message Limit")
-		message_limit.change(lambda x: params.update({"message_limit":int(x)}), message_limit, None)
+		scaling = gr.Radio(value="exponential",label="Scaling",info="How the multiplier scales with the number of messages.",choices=["constant","linear","exponential","logarithmic"])
+		scaling.change(lambda x: params.update({"scaling": x}), scaling, None)
+
 
 		with gr.Row():
 			context_delimiter = gr.Textbox(value="\\n",label="Context Delimiter",info="Expected history format for Default and Notebook tabs.")
