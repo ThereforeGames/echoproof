@@ -16,13 +16,24 @@ This issue can derail a conversation well before the context window is exhausted
 
 What if we just inject the last thing the chatbot said into the negative prompt for its next message? That was the main idea behind Echoproof, and it seems to work pretty well.
 
-After testing this approach for a few weeks, I have refined it with a few additional controls:
+A few weeks of testing have led me to refine this approach with these additional features:
 
-- **Last Message Multiplier**: The number of times to add the most recent message into the negative prompt. I have found that 1 is not strong enough to offset the OCD effect, but 3-5 makes a noticeable difference.
-- **History Multiplier**: The number of times to add your entire chat history into the negative prompt. If you enable Echoproof from the beginning of a conversation, this feature is probably overkill. However, it might be able to save a conversation that is already starting to go off the rails.
-- **History Message Limit**: Caps the aforementioned feature to the last x messages.
+### Max Messages
+The maximum number of recent messages that will be injected into the negative prompt. This is a hard limit, so if you set it to 5 and your chat history is 10 messages long, only the last 5 messages will be injected.
 
-Some models are more prone to repetition than others, so you may need to experiment with these settings to find the right balance.
+### Max Multiplier
+The maximum multiplier that will be applied to a message (in other words, the repeat count). I have found that passing a message into the negative prompt only once is not enough to offset the OCD effect, but repeating it 3-5 times makes a noticeable difference.
+
+### Scaling
+This is the scaling algorithm that will be applied to the multiplier for each message. You can choose between `constant`, `linear`, `exponential` and `logarithmic`.
+
+### Notebook and Default Tab Support
+
+Originally, this extension only supported Chat mode, but it has since been updated to support other modes as well. The `context_delimiter` setting allows you to specify the expected message separator for Notebook and Default tabs, which defaults to `\n`.
+
+### Blacklist
+
+This feature allows you to exclude certain terms from being injected into your negative prompt, with support for `*` wildcard and regex. This is useful if you want to preserve the LLM's understanding of certain words or phrases, for example in complex multi-character scenarios.
 
 ## How to install
 
